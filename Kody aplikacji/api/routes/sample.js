@@ -1,21 +1,22 @@
-// PRÓBKA - pobierana z wagonu w randomowej chwili, zarządzana również przez użytkownika, przechowuje informacje o badaniach
-// wykonywanych na niej, zawiera szczegółowe informacje o badanym koksie
+// PRÓBKA pobierana z wagonu w randomowej chwili, zarządzana również przez użytkownika, przechowuje informacje o badaniach
+// wykonywanych na niej, zawiera szczegółowe informacje o badanym koksie (GET, GET/ID, POST, PATCH/ID, DELETE/ID)
+// GET & GET/ID nie wymagana autoryzacja
 
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const checkAuth = require('../middleware/check-auth');
-const Sample = require('../models/sample');             // import próbki oraz wagonu
-const Order = require("../models/order");
-const Composition = require("../models/composition");
-const Granulation = require("../models/granulation");
+const Sample = require('../models/sample');             // import modelu próbki
+const Order = require("../models/order");               // - || - zamówienia
+const Composition = require("../models/composition");   // - || - kompozycji
+const Granulation = require("../models/granulation");   // - || - ziarnistości
 
 
-// GET z handlerem
+// GET ---> pobieranie informacji o wszystkich próbkach w jednym momencie
 router.get("/", (req, res, next) => {
     Sample.find()
         //.select("sample_weight date_sample composition granulation research _id")
-        .populate('order composition granulation')               // wyciąga info z wagonu
+        .populate('order composition granulation')
         .exec()
         .then(docs => {
             res.status(200).json({
@@ -44,7 +45,7 @@ router.get("/", (req, res, next) => {
 });
 
 
-// POST - dodawanie próbki, potrzebna autoryzacja użytkownika
+// POST ---> dodawanie próbki do systemu
 router.post("/", checkAuth, (req, res, next) => {
     Order.findById(req.body.orderId)
         .then(order => {
@@ -54,7 +55,6 @@ router.post("/", checkAuth, (req, res, next) => {
                 });
             }
             const sample = new Sample({
-                //_id: mongoose.Types.ObjectId(),
                 sample_weight: req.body.sample_weight,
                 date_sample: req.body.date_sample,
                 order: req.body.orderId,
@@ -93,7 +93,7 @@ router.post("/", checkAuth, (req, res, next) => {
         });
 });
 
-// PATCH - aktualizacje
+// PATCH ---> aktualizacje próbki
 router.patch("/:sampleId", checkAuth, (req, res, next) => {
     const id = req.params.sampleId;
     const updateOperations = {};             // pusty obiekt JS
@@ -115,7 +115,7 @@ router.patch("/:sampleId", checkAuth, (req, res, next) => {
         })
 });
 
-// GET po id
+// GET/ID ---> pobieranie informacji o konkretnej próbce
 router.get("/:sampleId", (req, res, next) => {
     Sample.findById(req.params.sampleId)
         .populate('order composition granulation')
@@ -138,7 +138,7 @@ router.get("/:sampleId", (req, res, next) => {
 });
 
 
-// DELETE --> usuwanie wagonu, również potrzebna autoryzacja
+// DELETE ---> usuwanie próbki z systemu
 router.delete("/:sampleId", checkAuth, (req, res, next) => {
     Sample.remove({_id: req.params.sampleId})
         .exec()

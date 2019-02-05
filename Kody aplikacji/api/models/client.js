@@ -1,8 +1,8 @@
-// MODEL: client, informacje o kliencie, który złożył zamówienie
+// MODEL Klient, informacje o kliencie, który złożył zamówienie (id oraz nazwa klienta)
 const mongoose = require('mongoose');
 
+// powie jak powinien wyglądać klient
 const clientSchema = mongoose.Schema({
-    //_id: mongoose.Schema.Types.ObjectId,
     client_name: {type: String, required: true}
 });
 

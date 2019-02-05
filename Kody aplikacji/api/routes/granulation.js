@@ -1,4 +1,5 @@
-// ZIARNISTOŚĆ
+// ZIARNISTOŚĆ stworzona na rzecz próbki, opisuje ziarnistość badanej próbki
+// GET & GET/ID bez autoryzacji
 
 const express = require("express");
 const router = express.Router();
@@ -7,7 +8,7 @@ const checkAuth = require('../middleware/check-auth');
 const Granulation = require('../models/granulation');
 
 
-// GET z handlerem
+// GET ---> pobranie wszystkich ziarnistości
 router.get("/", (req, res, next) => {
     Granulation.find()
         .select("granulation_min granulation_max high_of_grain width_of_grain _id")
@@ -34,7 +35,7 @@ router.get("/", (req, res, next) => {
 });
 
 
-// POST - dodawanie próbki, potrzebna autoryzacja użytkownika
+// POST  ---> dodawanie ziarnistości próbki do systemu
 router.post("/", checkAuth, (req, res, next) => {
     const granulation = new Granulation({
         granulation_min: req.body.granulation_min,
@@ -64,7 +65,7 @@ router.post("/", checkAuth, (req, res, next) => {
         });
 });
 
-// GET SZCZEGÓLNE intormacje o konkretnej kompozycji mineralnej
+// GET/ID ---> pobranie szczegółowych informacji o konkretnej ziarnistości
 router.get('/:granulationId', (req, res, next) => {
     const id = req.params.granulationId;
     Granulation.findById(id)
@@ -87,7 +88,7 @@ router.get('/:granulationId', (req, res, next) => {
 });
 
 
-// PATCH - aktualizacje
+// PATCH ---> aktualizacje
 router.patch("/:granulationId", checkAuth, (req, res, next) => {
     const id = req.params.granulationId;
     const updateOperations = {};             // pusty obiekt JS
@@ -110,7 +111,7 @@ router.patch("/:granulationId", checkAuth, (req, res, next) => {
 });
 
 
-// DELETE (do autoryzacji - checkAuth,)
+// DELETE ---> usuwanie ziarnistości z systemu
 router.delete("/:granulationId", checkAuth, (req, res, next) => {
     const id = req.params.granulationId;
     Granulation.remove({_id: id})

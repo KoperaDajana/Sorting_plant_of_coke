@@ -1,17 +1,16 @@
-// zamówienia określające kto zamawia, ile koksu zamawia oraz datę złożenia zamówienia, zamówienie jest wykonywane
-// w zależności od tego jaki jest aktualny status na magazynie
-// (GET, GET PO ID, POST, DELETE),
-// użytkownik wybiera zamówienia do realizacji
-// autoryzacja dla post, patch oraz delete
+// Zamówienia określające kto zamawia, ile koksu zamawia oraz datę złożenia zamówienia, zamówienie jest wykonywane
+// w zależności od tego jaki jest aktualny status na magazynie, Użytkownik wybiera zamówienie do realizacji
+// (GET, GET/ID, POST, PATCH/ID, DELETE/ID),
+// GET & GET/ID bez autoryzacji
 
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const checkAuth = require('../middleware/check-auth');
-const Order = require('../models/order');   //import z modelowanego ordera
-const Client = require('../models/client');
+const Order = require('../models/order');           //import z modelu zamówienia
+const Client = require('../models/client');         //import z modelu klienta
 
-// GET ORDER
+// GET ---> pobranie zamówienia
 router.get('/', (req, res, next) => {
     Order.find()
         .select('_id client_name weight date_of_order')
@@ -37,7 +36,7 @@ router.get('/', (req, res, next) => {
 });
 
 
-// POST ORDER
+// POST ---> dodawanie zamówienia
 router.post('/', checkAuth, (req, res, next) => {
     Client.findById(req.body.clientId)
         .then(client => {
@@ -47,16 +46,15 @@ router.post('/', checkAuth, (req, res, next) => {
                 });
             }
             const order = new Order({
-                //_id: mongoose.Types.ObjectId(),
-                client: req.body.client,
+                client: req.body.clientId,
                 weight: req.body.weight,
                 date_of_order: req.body.date_of_order
             });
             return order.save()
         })
-        .then(result => {         // daje to do DB
+        .then(result => {               // daje to do DB
             console.log(result);
-            res.status(201).json({              // to pozwala na wysłanie od razu
+            res.status(201).json({                 // to pozwala na wysłanie od razu
                 message: 'Create order successfully',
                 createdOrder: {
                     _id: result._id,
@@ -74,7 +72,7 @@ router.post('/', checkAuth, (req, res, next) => {
         });
 });
 
-// PATCH - aktualizacje w momencie np. błędnego wprowadzenia do bazy
+// PATCH ---> aktualizacje w momencie np. błędnego wprowadzenia do bazy
 router.patch("/:orderId", checkAuth, (req, res, next) => {
     const id = req.params.orderId;
     const updateOperations = {};             // pusty obiekt JS
@@ -96,7 +94,7 @@ router.patch("/:orderId", checkAuth, (req, res, next) => {
         })
 });
 
-// GET zamówienie po Id
+// GET/ID ---> pobranie informacji o konkretnym zamówieniu
 router.get('/:orderId', (req, res, next) => {
     Order.findById(req.params.orderId)
         .select('_id client_name weight date_of_order')
@@ -120,6 +118,7 @@ router.get('/:orderId', (req, res, next) => {
 });
 
 
+// DELETE/ID ---> usunięcie zamówienia po jego realizacji
 router.delete('/:orderId', checkAuth, (req, res, next) => {
     Order.remove({_id: req.params.orderId})
         .exec()

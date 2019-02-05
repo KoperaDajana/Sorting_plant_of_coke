@@ -1,7 +1,7 @@
 // WAGON, do niego zostają usypywane kopy koksu, posiada dwa atrybuty - id i etykietę,
 // z niego również w swoim czasie zostaje pobrana próbka, która zostaje poddana badaniom
-// PATCH w tym miejscu zbędne, ewentualnie poprawa etykiety
-// zalogowany użytkownik wybiera wagony
+// PATCH w tym miejscu zbędne, ewentualnie poprawa etykiety, zalogowany użytkownik wybiera wagony
+// GET & GET/ID bez autoryzacji
 
 const express = require("express");
 const router = express.Router();
@@ -9,10 +9,8 @@ const mongoose = require("mongoose");
 const checkAuth = require('../middleware/check-auth');
 const Wagon = require("../models/wagon");
 const Label = require("../models/label");
-//const User = require('../models/user');
 
-
-// GET z handlerem
+// GET ---> pobieranie informacji o wszystkich wagonach
 router.get("/", (req, res, next) => {
     Wagon.find()
         .select("label _id")
@@ -37,7 +35,7 @@ router.get("/", (req, res, next) => {
 });
 
 
-// POST - dodawanie wagonu, potrzebna autoryzacja użytkownika
+// POST ---> dodawanie wagonu do systemu, nadanie mu etykiety, potrzebna autoryzacja użytkownika
 router.post("/", checkAuth, (req, res, next) => {
     Label.findById(req.body.labelId)
         .then(label => {
@@ -47,7 +45,6 @@ router.post("/", checkAuth, (req, res, next) => {
                 });
             }
             const wagon = new Wagon({
-                //_id: mongoose.Types.ObjectId(),
                 label: req.body.labelId
             });
             return wagon.save();
@@ -71,7 +68,7 @@ router.post("/", checkAuth, (req, res, next) => {
 });
 
 
-// GET po id
+// GET/ID ---> pobranie informacji o konkretnym wagonie
 router.get("/:wagonId", (req, res, next) => {
     Wagon.findById(req.params.wagonId)
         .populate('label')

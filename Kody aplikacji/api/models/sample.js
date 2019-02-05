@@ -1,11 +1,10 @@
-// MODEL: próbki, które są pobierane z wagonów
+// MODEL Próbki, które są pobierane z wagonów
 const mongoose = require('mongoose');
 
 // powie o tym jak powinna wyglądać próbka
 const sampleSchema = mongoose.Schema({
-    //_id: mongoose.Schema.Types.ObjectId,
     sample_weight: {type: Number, default: 1},
-    date_sample: {type: Number, default: 10011001},
+    date_sample: {type: String, required: true},
     order: {type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true},
     // pozostałe niewymagane ze względu na to, że uzupełniane różnie w czasie
     composition: {type: mongoose.Schema.Types.ObjectId, ref: 'Composition', required: false}, //skład mineralny

@@ -1,5 +1,6 @@
-// operator sortowni koksu, może być to zarówno pracownik administracyjny, jak i z laboratorium, produkcja tylko odczyt - nie potrzebują kont
-// Rejestracja, logowanie (POST/SIGNUP, POST/LOGIN, GET, DELETE)
+// Użytkownik sortowni koksu, może być to zarówno pracownik administracyjny, jak i z laboratorium,
+// produkcja tylko odczyt - nie potrzebują kont
+// Rejestracja, logowanie (POST/SIGNUP, POST/LOGIN, GET)
 
 const express = require('express');
 const router = express.Router();
@@ -7,11 +8,10 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');        //token, https://jwt.io/
 const User = require('../models/user');     //importowanie z modelu
-const Order = require('../models/order');   //importowanie z modelu zamówień
 
 // SIGN UP ---> rejestracja użytkownika, email + password
 // w założeniu pracownicy posiadają maile na platformie przedsiębiorstwa i na ich podstawie zakładane są im konta
-// żeby stworzyć, muszę być zalogowana na https://cloud.mongodb.com/v2/5c13a9bf79358e3195fdd74f#clusters
+// żeby stworzyć, administrator musi być zalogowany na MongoDB https://cloud.mongodb.com/v2/5c13a9bf79358e3195fdd74f#clusters
 router.post('/signup', (req, res, next) => {
     User.find({email: req.body.email})
         .exec()
@@ -21,15 +21,13 @@ router.post('/signup', (req, res, next) => {
                     message: 'Email exists'
                 });
             } else {
-                // haszowanie hasła
-                bcrypt.hash(req.body.password, 10, (err, hash) => {
+                bcrypt.hash(req.body.password, 10, (err, hash) => {     // haszowanie hasła
                     if (err) {
                         return res.status(500).json({
                             error: err
                         });
                     } else {
                         const user = new User({
-                            //_id: new mongoose.Types.ObjectId(),
                             email: req.body.email,
                             password: hash
                         });
@@ -54,7 +52,7 @@ router.post('/signup', (req, res, next) => {
 });
 
 
-// LOGOWANIE użytkownika, również z obsługą, jeśli poda złe hasło
+// LOGIN ---> logowanie użytkownika (również z obsługą, jeśli poda złe hasło)
 // dla tokenów -> instalacja jsonwebtoken --save
 router.post("/login", (req, res, next) => {
     User.find({email: req.body.email})
@@ -80,7 +78,7 @@ router.post("/login", (req, res, next) => {
                         },
                         process.env.JWT_KEY,    // ustawione w nodemoon.json
                         {
-                            expiresIn: "5h"     // wygasa za 1h od ustawienia
+                            expiresIn: "5h"     // wygasa za 5h od ustawienia
                         }
                     );
                     return res.status(200).json({
@@ -102,16 +100,13 @@ router.post("/login", (req, res, next) => {
 });
 
 
-// nowy post dla dodania raportu, czy nie?
-
-// GET -- pokazuje wszystkich użytkowników, którzy zostali zarejestrowani
+// GET ---> pokazuje wszystkich użytkowników, którzy zostali zarejestrowani w systemie
 router.get('/', (req, res, next) => {
     User.find()
-        .select('email _id')           // wybiera które z atrybutów mają być wyświetlane
+        .select('email _id')            // wybiera które z atrybutów mają być wyświetlane
         .exec()
         .then(docs => {
-            const response = {
-                // informajce o użytkowniku
+            const response = {          // informajce o użytkowniku
                 count: docs.length,     // ilość wszystkich użytkowników jako długość
                 users: docs.map(doc => {
                     return {
@@ -131,21 +126,21 @@ router.get('/', (req, res, next) => {
 });
 
 
-// DELETE - usuwa użytkownika z systemu (w przypadku np. zwolnienia go)
-router.delete('/:userId', (req, res, next) => {
-    User.remove({_id: req.params.userId})
-        .exec()
-        .then(result => {
-            res.status(200).json({
-                message: 'User deleted'
-            });
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
-        });
-});
+// DELETE - (użytkownik nie może usunąć użytkownika, robi to tylko administrator)
+// router.delete('/:userId', (req, res, next) => {
+//     User.remove({_id: req.params.userId})
+//         .exec()
+//         .then(result => {
+//             res.status(500).json({
+//                 message: 'You cant delete other user'
+//             });
+//         })
+//         .catch(err => {
+//             console.log(err);
+//             res.status(500).json({
+//                 error: err
+//             });
+//         });
+// });
 
 module.exports = router;

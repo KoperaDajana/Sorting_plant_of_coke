@@ -1,4 +1,5 @@
-// KOMPOZYCJA - stworzona na rzecz próbki
+// KOMPOZYCJA stworzona na rzecz próbki, opisuje skład mineralny badanej próbki
+// GET & GET/ID bez autoryzacji
 
 const express = require("express");
 const router = express.Router();
@@ -7,7 +8,7 @@ const checkAuth = require('../middleware/check-auth');
 const Composition = require('../models/composition');
 
 
-// GET z handlerem
+// GET ---> pobranie wszystkich kompozycji
 router.get("/", (req, res, next) => {
     Composition.find()
         .select("sulfur_content carbon_content hydrogen_content oxygen_content nitrogen_content _id")
@@ -35,7 +36,7 @@ router.get("/", (req, res, next) => {
 });
 
 
-// POST - dodawanie próbki, potrzebna autoryzacja użytkownika
+// POST ---> dodawanie kompozycji próbki do systemu
 router.post("/", checkAuth, (req, res, next) => {
     const composition = new Composition({
         sulfur_content: req.body.sulfur_content,
@@ -67,7 +68,7 @@ router.post("/", checkAuth, (req, res, next) => {
     });
 });
 
-// GET SZCZEGÓLNE intormacje o konkretnej kompozycji mineralnej
+// GET/ID ---> pobranie szczegółowych informacji o konkretnej kompozycji mineralnej
 router.get('/:compositionId', (req, res, next) => {
     const id = req.params.compositionId;
     Composition.findById(id)
@@ -90,7 +91,7 @@ router.get('/:compositionId', (req, res, next) => {
 });
 
 
-// PATCH - aktualizacje
+// PATCH ---> aktualizacje
 router.patch("/:compositionId", checkAuth, (req, res, next) => {
     const id = req.params.compositionId;
     const updateOperations = {};             // pusty obiekt JS
@@ -113,7 +114,7 @@ router.patch("/:compositionId", checkAuth, (req, res, next) => {
 });
 
 
-// DELETE (do autoryzacji - checkAuth,)
+// DELETE ---> usuwanie kompozycji z systemu
 router.delete("/:compositionId", checkAuth, (req, res, next) => {
     const id = req.params.compositionId;
     Composition.remove({_id: id})

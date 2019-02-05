@@ -1,12 +1,13 @@
-// etykiety, które są wejściem do systemu, wjeżdżający wagon, który ma zostać zasypany jest etykietowany.
-// etykieta posiada informacje o wagonie, jego typie, numerze oraz informacje o właścicielu
+// Etykiety, które są wejściem do systemu, wjeżdżający wagon, który ma zostać zasypany jest etykietowany.
+// etykieta posiada informacje o wagonie, (GET, GET/ID, POST, PATCH/ID, DELETE/ID),
+// GET & GET/ID bez autoryzacji
 
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const multer = require('multer');
 const checkAuth = require('../middleware/check-auth');       // do autoryzacji nie działa patch i post
-const Label = require("../models/label");           //importowanie z modelu
+const Label = require("../models/label");                    //importowanie z modelu etykiety
 
 // pobieranie zdjęcia etykiety, w celu odczytania informacji
 const storage = multer.diskStorage({
@@ -36,15 +37,14 @@ const upload = multer({
 });
 
 
-// GET pierwszy argument to url, handler
+// GET ---> pobieranie etykiet
 router.get('/', (req, res, next) => {
     Label.find()
         .select('type_of_wagon number_of_squad')  // wybiera które z atrybutów mają być wyświetlane
         .exec()
         .then(docs => {
             const response = {
-                // informajce o etykiecie
-                count: docs.length,     //ilość jako długość
+                count: docs.length,
                 labels: docs.map(doc => {
                     return {
                         _id: doc._id,
@@ -65,19 +65,18 @@ router.get('/', (req, res, next) => {
 });
 
 
-// POST -- do ładowania zdjęcia dać w drugim argumencie: upload.single('labelImage')
+// POST ---> dodawanie, do ładowania zdjęcia dać w drugim argumencie: upload.single('labelImage')
 router.post("/", checkAuth, (req, res, next) => {
     const label = new Label({
-       // _id: new mongoose.Types.ObjectId(),
         type_of_wagon: req.body.type_of_wagon,
         number_of_squad: req.body.number_of_squad,
         //labelImage: req.file.path
     });
     label
         .save()
-        .then(result => {         // daje to do DB
+        .then(result => {
             console.log(result);
-            res.status(201).json({              // to pozwala na wysłanie od razu
+            res.status(201).json({
                 message: 'Create label successfully',
                 createdLabel: {
                     _id: result._id,
@@ -95,7 +94,7 @@ router.post("/", checkAuth, (req, res, next) => {
 });
 
 
-// GET SZCZEGÓLNE intormacje o konkretnej etykiecie
+// GET/ID ---> pobranie intormacji o konkretnej etykiecie
 router.get('/:labelId', (req, res, next) => {
     const id = req.params.labelId;
     Label.findById(id)
@@ -118,7 +117,7 @@ router.get('/:labelId', (req, res, next) => {
 });
 
 
-// PATCH - aktualizacje
+// PATCH - aktualizacje etykiet
 router.patch("/:labelId", checkAuth, (req, res, next) => {
     const id = req.params.labelId;
     const updateOperations = {};             // pusty obiekt JS
@@ -141,7 +140,7 @@ router.patch("/:labelId", checkAuth, (req, res, next) => {
 });
 
 
-// DELETE (do autoryzacji - checkAuth,)
+// DELETE ---> usuwanie etykiet z systemu
 router.delete("/:labelId", checkAuth, (req, res, next) => {
     const id = req.params.labelId;
     Label.remove({_id: id})

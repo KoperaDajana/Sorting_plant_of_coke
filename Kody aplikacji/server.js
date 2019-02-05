@@ -2,7 +2,7 @@
 const http = require('http');
 const app = require('./app');
 
-// na tym powinien się odpalić, default port
+// na tym powinien się uruchomić, default port
 const port = process.env.PORT || 3000;
 
 const server = http.createServer(app);

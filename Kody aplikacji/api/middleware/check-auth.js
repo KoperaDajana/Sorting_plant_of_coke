@@ -2,7 +2,6 @@
 // package.json --> "echo \"Error: no test specified\" && exit 1" poprzedni test
 const jwt = require('jsonwebtoken');
 
-
 module.exports = (req, res, next) => {
     try {
         const token = req.headers.authorization.split(" ")[1];

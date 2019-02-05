@@ -1,3 +1,7 @@
+// Klient (na rzecz zamówienia)
+// Pobieranie, dodanie, aktualizacja i usunięcie (GET, POST, GET/ID, PATCH/ID, DELETE/ID)
+// GET & GET/ID bez autoryzacji
+
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
@@ -5,16 +9,14 @@ const multer = require('multer');
 const checkAuth = require('../middleware/check-auth');       // do autoryzacji nie działa patch i post
 const Client = require("../models/client");                  //importowanie z modelu
 
-
-// GET pierwszy argument to url, handler
+// GET --->  pobranie klienta(pierwszy argument to url, handler =>)
 router.get('/', (req, res, next) => {
     Client.find()
         .select('client_name')  // wybiera które z atrybutów mają być wyświetlane
         .exec()
         .then(docs => {
             const response = {
-                // informajce o kliencie
-                count: docs.length,     //ilość jako długość
+                count: docs.length,
                 clients: docs.map(doc => {
                     return {
                         _id: doc._id,
@@ -33,15 +35,14 @@ router.get('/', (req, res, next) => {
 });
 
 
-// POST --
+// POST ---> dodawanie klienta do systemu
 router.post("/", checkAuth, (req, res, next) => {
     const client = new Client({
-        // _id: new mongoose.Types.ObjectId(),
         client_name: req.body.client_name
     });
     client
         .save()
-        .then(result => {         // daje to do DB
+        .then(result => {                       // daje to do DB
             console.log(result);
             res.status(201).json({              // to pozwala na wysłanie od razu
                 message: 'Create client successfully',
@@ -60,7 +61,7 @@ router.post("/", checkAuth, (req, res, next) => {
 });
 
 
-// GET SZCZEGÓLNE intormacje o konkretnej etykiecie
+// GET/ID ---> pobieranie o konkretnym kliencie
 router.get('/:clientId', (req, res, next) => {
     const id = req.params.clientId;
     Client.findById(id)
@@ -83,7 +84,7 @@ router.get('/:clientId', (req, res, next) => {
 });
 
 
-// PATCH - aktualizacje
+// PATCH ---> aktualizacje
 router.patch("/:clientId", checkAuth, (req, res, next) => {
     const id = req.params.clientId;
     const updateOperations = {};             // pusty obiekt JS
@@ -106,7 +107,7 @@ router.patch("/:clientId", checkAuth, (req, res, next) => {
 });
 
 
-// DELETE (do autoryzacji - checkAuth,)
+// DELETE ---> usuwanie klienta
 router.delete("/:clientId", checkAuth, (req, res, next) => {
     const id = req.params.clientId;
     Client.remove({_id: id})
