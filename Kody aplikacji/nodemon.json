@@ -1,6 +1,0 @@
-{
-    "env": {
-        "MONGO_PASSWORD": "dajana0",
-        "JWT_KEY": "secret"
-    }
-}
